@@ -11,7 +11,7 @@ interface AccountCardProps {
 
 export function AccountCard({ account, onPress }: AccountCardProps) {
   const colors = useAppColors()
-  const balance = account.balance ?? account.initialBalance ?? 0
+  const balance = Number(account.balance ?? account.initialBalance ?? 0)
 
   return (
     <Pressable

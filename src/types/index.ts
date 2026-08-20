@@ -1,13 +1,14 @@
 export type TransactionType = 'income' | 'expense'
 export type AccountType = 'cash' | 'bank' | 'ewallet'
 export type ThemePreference = 'light' | 'dark' | 'system'
+export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN'
 
 export interface User {
   id: string
   email: string
   name: string
   theme: ThemePreference
-  role: string
+  role: UserRole
   createdAt: string
   updatedAt: string
 }

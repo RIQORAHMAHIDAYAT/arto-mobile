@@ -28,7 +28,7 @@ export function AccountsScreen({ navigation }: Props) {
   )
 
   const accounts: AccountWithBalance[] = data ?? []
-  const totalBalance = accounts.reduce((sum, a) => sum + (a.balance ?? a.initialBalance ?? 0), 0)
+  const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance ?? a.initialBalance ?? 0), 0)
 
   return (
     <Screen

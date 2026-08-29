@@ -11,6 +11,14 @@ import type { RootStackParamList } from '@/navigation/types'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>
 
+/**
+ * Kredensial akun demo khusus development — dibaca dari env lokal
+ * (.env: EXPO_PUBLIC_DEMO_EMAIL / EXPO_PUBLIC_DEMO_PASSWORD).
+ * Tombol demo hanya dirender saat __DEV__ dan kedua nilai terisi.
+ */
+const DEMO_EMAIL = process.env.EXPO_PUBLIC_DEMO_EMAIL
+const DEMO_PASSWORD = process.env.EXPO_PUBLIC_DEMO_PASSWORD
+
 export function LoginScreen({ navigation }: Props) {
   const colors = useAppColors()
   const { login } = useAuth()
@@ -36,10 +44,11 @@ export function LoginScreen({ navigation }: Props) {
   }
 
   const handleDemoLogin = async () => {
+    if (!DEMO_EMAIL || !DEMO_PASSWORD) return
     setLoading(true)
     setError(null)
     try {
-      await login({ email: 'demo@arto.id', password: 'demopass123' })
+      await login({ email: DEMO_EMAIL, password: DEMO_PASSWORD })
     } catch (err) {
       setError(getErrorMessage(err, 'Akun demo tidak tersedia.'))
     } finally {
@@ -85,9 +94,11 @@ export function LoginScreen({ navigation }: Props) {
           <Button loading={loading} onPress={() => void handleSubmit()}>
             Masuk
           </Button>
-          <Button variant="ghost" loading={loading} onPress={() => void handleDemoLogin()}>
-            Coba akun demo
-          </Button>
+          {__DEV__ && DEMO_EMAIL && DEMO_PASSWORD ? (
+            <Button variant="ghost" loading={loading} onPress={() => void handleDemoLogin()}>
+              Coba akun demo
+            </Button>
+          ) : null}
         </Card>
 
         <View style={styles.footer}>

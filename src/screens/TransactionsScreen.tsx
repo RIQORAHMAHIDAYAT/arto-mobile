@@ -6,6 +6,9 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { listCategories } from '@/api/categories'
 import { listTransactions } from '@/api/transactions'
+import { getAccessToken, getApiUrl } from '@/api/client'
+import * as FileSystem from 'expo-file-system/legacy'
+import * as Sharing from 'expo-sharing'
 import { Screen } from '@/components/Screen'
 import { TransactionRow } from '@/components/transactions/TransactionRow'
 import { Button } from '@/components/ui/Button'
@@ -82,14 +85,37 @@ export function TransactionsScreen({ navigation }: Props) {
     }
   }
 
+  const handleExport = async () => {
+    try {
+      const url = `${getApiUrl()}/transactions/export/csv${filter !== 'all' ? `?type=${filter}` : ''}${query ? (filter !== 'all' ? `&query=${query}` : `?query=${query}`) : ''}`
+      const token = await getAccessToken()
+      const fileUri = `${FileSystem.documentDirectory}transactions.csv`
+
+      const { uri, status } = await FileSystem.downloadAsync(url, fileUri, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      
+      if (status !== 200) throw new Error('Gagal mengunduh file CSV')
+      
+      await Sharing.shareAsync(uri, { UTI: 'public.comma-separated-values-text', mimeType: 'text/csv' })
+    } catch (err) {
+      alert(getErrorMessage(err))
+    }
+  }
+
   return (
     <Screen
       title="Transaksi"
       subtitle={`${totalCount} transaksi`}
       action={
-        <Button size="sm" onPress={() => navigation.navigate('TransactionForm', {})}>
-          + Tambah
-        </Button>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button size="sm" variant="ghost" onPress={() => void handleExport()}>
+            📥
+          </Button>
+          <Button size="sm" onPress={() => navigation.navigate('TransactionForm', {})}>
+            + Tambah
+          </Button>
+        </View>
       }
       refreshing={loading}
       onRefresh={() => void refetch()}

@@ -45,6 +45,18 @@ export async function logout(): Promise<void> {
       // tetap bersihkan token lokal meskipun server logout gagal
     }
   }
+  
+  try {
+    const { getExpoPushTokenAsync } = await import('expo-notifications');
+    const tokenData = await getExpoPushTokenAsync({ projectId: 'arto-project' });
+    if (tokenData && tokenData.data) {
+      const { unregisterDeviceToken } = await import('./notifications');
+      await unregisterDeviceToken(tokenData.data);
+    }
+  } catch {
+    // ignore
+  }
+
   await clearTokens()
 }
 

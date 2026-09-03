@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import {
   ActivityIndicator,
   Pressable,
@@ -30,6 +30,7 @@ import { RegisterScreen } from '@/screens/auth/RegisterScreen'
 import { SettingsScreen } from '@/screens/SettingsScreen'
 import { TransactionFormScreen } from '@/screens/TransactionFormScreen'
 import { TransactionsScreen } from '@/screens/TransactionsScreen'
+import { RecurringTransactionsScreen } from '@/screens/RecurringTransactionsScreen'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -90,8 +91,54 @@ function AuthStack() {
   )
 }
 
+import * as Notifications from 'expo-notifications'
+import * as Device from 'expo-device'
+import { Platform, Alert } from 'react-native'
+import { registerDeviceToken } from '@/api/notifications'
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 function AuthedStack() {
   const colors = useAppColors()
+
+  useEffect(() => {
+    async function setupNotifications() {
+      if (!Device.isDevice) {
+        return;
+      }
+      const existingPermissions = (await Notifications.getPermissionsAsync()) as any;
+      let isGranted = existingPermissions.status === 'granted' || existingPermissions.granted;
+      
+      if (!isGranted) {
+        const requestedPermissions = (await Notifications.requestPermissionsAsync()) as any;
+        isGranted = requestedPermissions.status === 'granted' || requestedPermissions.granted;
+      }
+      
+      if (!isGranted) {
+        return;
+      }
+      try {
+        const projectId = 'arto-project'; // Replace with real expo project ID if applicable
+        const tokenData = await Notifications.getExpoPushTokenAsync({
+          projectId,
+        });
+        const platform = Platform.OS;
+        await registerDeviceToken(tokenData.data, platform);
+      } catch (err) {
+        console.warn('Gagal mendaftar push token:', err);
+      }
+    }
+    setupNotifications();
+  }, []);
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -116,6 +163,7 @@ function AuthedStack() {
       <Stack.Screen name="FinancialHealth" component={FinancialHealthScreen} options={{ title: 'Kesehatan Finansial' }} />
       <Stack.Screen name="Accounts" component={AccountsScreen} options={{ title: 'Akun' }} />
       <Stack.Screen name="AccountForm" component={AccountFormScreen} options={{ title: 'Akun' }} />
+      <Stack.Screen name="RecurringTransactions" component={RecurringTransactionsScreen} options={{ title: 'Transaksi Rutin' }} />
     </Stack.Navigator>
   )
 }

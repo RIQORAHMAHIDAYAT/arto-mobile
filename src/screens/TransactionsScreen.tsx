@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, Alert } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import type { CompositeScreenProps } from '@react-navigation/native'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { listCategories } from '@/api/categories'
 import { listTransactions } from '@/api/transactions'
-import { getAccessToken, getApiUrl } from '@/api/client'
+import { getApiUrl, downloadWithAuth } from '@/api/client'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 import { Screen } from '@/components/Screen'
@@ -88,18 +88,15 @@ export function TransactionsScreen({ navigation }: Props) {
   const handleExport = async () => {
     try {
       const url = `${getApiUrl()}/transactions/export/csv${filter !== 'all' ? `?type=${filter}` : ''}${query ? (filter !== 'all' ? `&query=${query}` : `?query=${query}`) : ''}`
-      const token = await getAccessToken()
       const fileUri = `${FileSystem.documentDirectory}transactions.csv`
 
-      const { uri, status } = await FileSystem.downloadAsync(url, fileUri, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const { uri, status } = await downloadWithAuth(url, fileUri)
       
       if (status !== 200) throw new Error('Gagal mengunduh file CSV')
       
       await Sharing.shareAsync(uri, { UTI: 'public.comma-separated-values-text', mimeType: 'text/csv' })
     } catch (err) {
-      alert(getErrorMessage(err))
+      Alert.alert('Gagal mengekspor', err instanceof Error ? err.message : String(err))
     }
   }
 

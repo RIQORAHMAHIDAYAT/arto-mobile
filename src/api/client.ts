@@ -80,7 +80,7 @@ function safeJson(text: string): unknown {
 
 let refreshPromise: Promise<boolean> | null = null
 
-async function refreshSession(): Promise<boolean> {
+export async function refreshSession(): Promise<boolean> {
   if (refreshPromise) return refreshPromise
   refreshPromise = (async () => {
     const refreshToken = await getRefreshToken()
@@ -163,4 +163,23 @@ export function queryString(params: object): string {
   }
   const raw = search.toString()
   return raw ? `?${raw}` : ''
+}
+
+import * as FileSystem from 'expo-file-system/legacy'
+export async function downloadWithAuth(url: string, fileUri: string): Promise<FileSystem.FileSystemDownloadResult> {
+  let token = await getAccessToken()
+  let result = await FileSystem.downloadAsync(url, fileUri, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  
+  if (result.status === 401) {
+    const refreshed = await refreshSession()
+    if (refreshed) {
+      token = await getAccessToken()
+      result = await FileSystem.downloadAsync(url, fileUri, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    }
+  }
+  return result
 }

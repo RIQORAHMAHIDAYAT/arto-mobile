@@ -34,3 +34,22 @@ export async function updateTransaction(id: string, input: Partial<TransactionIn
 export async function deleteTransaction(id: string): Promise<void> {
   return request<void>(`/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+
+export async function createRecurringTransaction(input: TransactionInput & { frequency: string; endDate?: string }): Promise<void> {
+  const { transactionDate, ...rest } = input;
+  return request<void>('/recurring-transactions', {
+    method: 'POST',
+    body: {
+      ...rest,
+      startDate: transactionDate
+    },
+  })
+}
+
+export async function listRecurringTransactions(): Promise<any[]> {
+  return request<any[]>('/recurring-transactions')
+}
+
+export async function deleteRecurringTransaction(id: string): Promise<void> {
+  return request<void>(`/recurring-transactions/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}

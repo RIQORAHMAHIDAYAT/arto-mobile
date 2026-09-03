@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View, Switch } from 'react-native'
 import type { Account, Category, Transaction, TransactionInput, TransactionType } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { DateField } from '@/components/ui/DateField'
@@ -18,7 +18,7 @@ interface TransactionFormProps {
   loading?: boolean
   error?: string | null
   onCancel?: () => void
-  onSubmit: (input: TransactionInput) => Promise<void>
+  onSubmit: (input: TransactionInput, recurring?: { frequency: string; endDate?: string }) => Promise<void>
 }
 
 export function TransactionForm({
@@ -38,6 +38,9 @@ export function TransactionForm({
   const [accountId, setAccountId] = useState(initial?.accountId ?? '')
   const [date, setDate] = useState(initial?.transactionDate ?? toISODate(new Date()))
   const [note, setNote] = useState(initial?.note ?? '')
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [frequency, setFrequency] = useState('monthly')
+  const [endDate, setEndDate] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const matchingCategories = useMemo(() => categories.filter((c) => c.type === type), [categories, type])
@@ -81,7 +84,10 @@ export function TransactionForm({
       return
     }
     try {
-      await onSubmit({ type, amount: value, categoryId, accountId, transactionDate: date, note })
+      await onSubmit(
+        { type, amount: value, categoryId, accountId, transactionDate: date, note },
+        isRecurring ? { frequency, endDate: endDate || undefined } : undefined
+      )
     } catch (err) {
       setSubmitError(getErrorMessage(err))
     }
@@ -144,6 +150,40 @@ export function TransactionForm({
       <DateField label="Tanggal" value={date} onChange={setDate} />
 
       <Input label="Catatan (opsional)" placeholder="misal: makan siang di kantin" value={note} onChangeText={setNote} />
+
+      {!initial && (
+        <View style={styles.recurringBox}>
+          <View style={styles.recurringRow}>
+            <Text style={styles.recurringLabel}>🔁 Jadikan Transaksi Rutin</Text>
+            <Switch 
+              value={isRecurring} 
+              onValueChange={setIsRecurring} 
+              trackColor={{ true: colors.primary }}
+            />
+          </View>
+          
+          {isRecurring && (
+            <View style={{ marginTop: spacing.md, gap: spacing.md }}>
+              <Select
+                label="Frekuensi"
+                value={frequency}
+                onChange={setFrequency}
+                options={[
+                  { value: 'daily', label: 'Harian' },
+                  { value: 'weekly', label: 'Mingguan' },
+                  { value: 'monthly', label: 'Bulanan' },
+                  { value: 'yearly', label: 'Tahunan' },
+                ]}
+              />
+              <DateField 
+                label="Berhenti Pada (Opsional)" 
+                value={endDate} 
+                onChange={setEndDate} 
+              />
+            </View>
+          )}
+        </View>
+      )}
 
       {shownError ? (
         <Text accessibilityRole="alert" style={[styles.errorBox, { backgroundColor: withAlpha(colors.danger, 0.1), color: colors.danger }]}>
@@ -209,5 +249,21 @@ const styles = StyleSheet.create({
   },
   footerSpacer: {
     flex: 1,
+  },
+  recurringBox: {
+    padding: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: '#e5e7eb', // border color
+    backgroundColor: '#f9fafb', // surface-hover color approximation
+  },
+  recurringRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recurringLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
   },
 })

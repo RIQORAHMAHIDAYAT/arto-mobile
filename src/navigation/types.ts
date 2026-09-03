@@ -21,6 +21,7 @@ export type RootStackParamList = {
   FinancialHealth: undefined
   Accounts: undefined
   AccountForm: { editing?: Account } | undefined
+  RecurringTransactions: undefined
 }
 
 declare global {

@@ -23,11 +23,18 @@ export function TransactionFormScreen({ navigation, route }: Props) {
   const loading = accountsState.loading || categoriesState.loading
   const error = accountsState.error ?? categoriesState.error
 
-  const handleSubmit = async (input: Parameters<typeof createTransaction>[0]) => {
+  const handleSubmit = async (
+    input: Parameters<typeof createTransaction>[0],
+    recurring?: { frequency: string; endDate?: string }
+  ) => {
     if (editing) {
       await updateTransaction(editing.id, input)
     } else {
       await createTransaction(input)
+      if (recurring) {
+        const { createRecurringTransaction } = await import('@/api/transactions')
+        await createRecurringTransaction({ ...input, ...recurring })
+      }
     }
     navigation.goBack()
   }

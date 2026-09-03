@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Alert, StyleSheet, Text } from 'react-native'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { changePassword } from '@/api/auth'
 import { Screen } from '@/components/Screen'
 import { Button } from '@/components/ui/Button'
@@ -10,11 +11,15 @@ import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
 import { getErrorMessage } from '@/lib/errorMessage'
-import type { MainTabParamList } from '@/navigation/types'
+import type { CompositeScreenProps } from '@react-navigation/native'
+import type { MainTabParamList, RootStackParamList } from '@/navigation/types'
 import { fontSizes, spacing, useAppColors } from '@/theme'
 import type { ThemePreference } from '@/types'
 
-type Props = BottomTabScreenProps<MainTabParamList, 'Settings'>
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Settings'>,
+  NativeStackScreenProps<RootStackParamList>
+>
 
 const THEME_OPTIONS: Array<{ value: ThemePreference; label: string }> = [
   { value: 'system', label: '🌓 Ikuti Sistem' },
@@ -22,7 +27,7 @@ const THEME_OPTIONS: Array<{ value: ThemePreference; label: string }> = [
   { value: 'dark', label: '🌙 Gelap' },
 ]
 
-export function SettingsScreen(_props: Props) {
+export function SettingsScreen(props: Props) {
   const colors = useAppColors()
   const { user, logout, updateTheme } = useAuth()
   const { theme, setTheme, resolvedTheme } = useTheme()
@@ -97,6 +102,13 @@ export function SettingsScreen(_props: Props) {
           onChange={(value) => void handleThemeChange(value as ThemePreference)}
           options={THEME_OPTIONS}
         />
+      </Card>
+
+      <Card title="Otomatisasi">
+        <Text style={[styles.help, { color: colors.muted }]}>Atur transaksi yang berjalan secara otomatis (berulang).</Text>
+        <Button variant="secondary" onPress={() => props.navigation.navigate('RecurringTransactions')}>
+          Kelola Transaksi Rutin
+        </Button>
       </Card>
 
       <Card title="Keamanan">

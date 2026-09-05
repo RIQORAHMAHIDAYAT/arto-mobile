@@ -40,6 +40,9 @@ export function MobileQuickAdd({ onAdd }: MobileQuickAddProps) {
             placeholderTextColor={colors.muted}
             value={note}
             onChangeText={setNote}
+            accessible={true}
+            accessibilityLabel="Input keterangan transaksi"
+            allowFontScaling={true}
           />
           <TextInput
             style={[styles.input, { color: colors.foreground, borderColor: colors.border }]}
@@ -48,6 +51,9 @@ export function MobileQuickAdd({ onAdd }: MobileQuickAddProps) {
             keyboardType="numeric"
             value={amountStr}
             onChangeText={setAmountStr}
+            accessible={true}
+            accessibilityLabel="Input nominal transaksi dalam Rupiah"
+            allowFontScaling={true}
           />
         </View>
         <View style={styles.buttons}>
@@ -55,15 +61,23 @@ export function MobileQuickAdd({ onAdd }: MobileQuickAddProps) {
             disabled={loading}
             style={[styles.btn, { backgroundColor: colors.success }]} 
             onPress={() => handleAdd('income')}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Tambah Pemasukan"
+            accessibilityHint="Menyimpan transaksi sebagai pemasukan"
           >
-            <Text style={styles.btnText}>+ Masuk</Text>
+            <Text style={styles.btnText} allowFontScaling={true}>+ Masuk</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             disabled={loading}
             style={[styles.btn, { backgroundColor: colors.danger }]} 
             onPress={() => handleAdd('expense')}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Tambah Pengeluaran"
+            accessibilityHint="Menyimpan transaksi sebagai pengeluaran"
           >
-            <Text style={styles.btnText}>- Keluar</Text>
+            <Text style={styles.btnText} allowFontScaling={true}>- Keluar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -85,7 +99,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   input: {
-    height: 36,
+    minHeight: 44,
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
@@ -96,6 +110,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   btn: {
+    minHeight: 44,
     paddingHorizontal: spacing.md,
     paddingVertical: 8,
     borderRadius: radii.sm,

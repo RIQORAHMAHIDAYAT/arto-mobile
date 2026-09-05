@@ -85,6 +85,10 @@ export function DashboardScreen({ navigation }: Props) {
       >
         {error ? (
           <ErrorState message={getErrorMessage(error)} onRetry={() => void refetch()} />
+        ) : loading && !data ? (
+          <View style={{ paddingTop: 40 }}>
+             <LoadingBlock label="Memuat buku kas..." />
+          </View>
         ) : (
           <>
             {/* Ringkasan Keuangan Gaya Excel */}
@@ -118,7 +122,10 @@ export function DashboardScreen({ navigation }: Props) {
               <Text style={[styles.ledgerTitle, { color: colors.foreground }]}>Riwayat & Saldo Berjalan</Text>
               
               {txList.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.muted }]}>Belum ada transaksi.</Text>
+                <View style={styles.emptyStateContainer} accessible={true} accessibilityLabel="Belum ada transaksi. Gunakan form di bawah untuk mencatat transaksi pertamamu">
+                  <Text style={[styles.emptyText, { color: colors.foreground }]}>Belum ada transaksi 🍃</Text>
+                  <Text style={[styles.emptySubText, { color: colors.muted }]}>Mulai catat pemasukan atau pengeluaran pertamamu menggunakan form di bawah 👇</Text>
+                </View>
               ) : (
                 txList.map((tx, idx) => (
                   <View key={tx.id}>
@@ -183,9 +190,21 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
   },
+  emptyStateContainer: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
   emptyText: {
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptySubText: {
     fontSize: fontSizes.sm,
-    paddingVertical: spacing.md,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   runningBalance: {
     fontSize: fontSizes.xs,

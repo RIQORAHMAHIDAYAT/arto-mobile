@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import { StyleSheet, Text, View, FlatList } from 'react-native'
+import { useCallback } from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { getDashboardSummary } from '@/api/dashboard'
@@ -17,14 +17,12 @@ import type { MainTabParamList, RootStackParamList } from '@/navigation/types'
 import { fontSizes, radii, spacing, useAppColors } from '@/theme'
 import type { CompositeScreenProps } from '@react-navigation/native'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
-import type { Transaction } from '@/types'
-
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Dashboard'>,
   NativeStackScreenProps<RootStackParamList>
 >
 
-export function DashboardScreen({ navigation }: Props) {
+export function DashboardScreen({ navigation: _navigation }: Props) {
   const colors = useAppColors()
   const { user } = useAuth()
   
@@ -60,7 +58,7 @@ export function DashboardScreen({ navigation }: Props) {
         accountId,
       })
       await refetch()
-    } catch (err) {
+    } catch {
       alert('Gagal menambah transaksi')
     }
   }

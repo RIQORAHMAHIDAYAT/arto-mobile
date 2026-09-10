@@ -4,7 +4,6 @@ import type { Account, AccountInput, AccountType } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { parseAmountText, sanitizeAmountInput } from '@/lib/currency'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { radii, spacing, useAppColors } from '@/theme'
 
@@ -20,11 +19,6 @@ export function AccountForm({ initial, loading, error, onCancel, onSubmit }: Acc
   const colors = useAppColors()
   const [name, setName] = useState(initial?.name ?? '')
   const [type, setType] = useState<AccountType>(initial?.type ?? 'cash')
-  const [initialBalance, setInitialBalance] = useState(
-    initial !== null && initial !== undefined && initial.balance != null && initial.balance > 0
-      ? String(initial.balance)
-      : '',
-  )
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleSubmit = async () => {
@@ -34,16 +28,11 @@ export function AccountForm({ initial, loading, error, onCancel, onSubmit }: Acc
       setSubmitError('Nama akun wajib diisi.')
       return
     }
-    const balance = parseAmountText(initialBalance)
-    if (initialBalance && balance === null) {
-      setSubmitError('Saldo awal harus berupa angka yang valid.')
-      return
-    }
     try {
       await onSubmit({
         name: cleanedName,
         type,
-        initialBalance: initialBalance ? (balance ?? 0) : 0,
+        initialBalance: 0,
       })
     } catch (err) {
       setSubmitError(getErrorMessage(err))
@@ -67,14 +56,7 @@ export function AccountForm({ initial, loading, error, onCancel, onSubmit }: Acc
         ]}
       />
 
-      <Input
-        label="Saldo Awal (Rp, opsional)"
-        keyboardType="number-pad"
-        placeholder="0"
-        value={initialBalance}
-        onChangeText={(text) => setInitialBalance(sanitizeAmountInput(text))}
-        hint={initial ? 'Saldo saat ini dapat disesuaikan.' : 'Saldo saat akun pertama dibuat.'}
-      />
+
 
       {shownError ? (
         <Text accessibilityRole="alert" style={[styles.errorBox, { backgroundColor: withAlpha(colors.danger, 0.1), color: colors.danger }]}>

@@ -125,7 +125,7 @@ export function DashboardScreen({ navigation: _navigation }: Props) {
                   <Text style={[styles.emptySubText, { color: colors.muted }]}>Mulai catat pemasukan atau pengeluaran pertamamu menggunakan form di bawah 👇</Text>
                 </View>
               ) : (
-                txList.map((tx, idx) => (
+                reversed.map((tx, idx) => (
                   <View key={tx.id}>
                     {idx > 0 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
                     <TransactionRow transaction={tx} />

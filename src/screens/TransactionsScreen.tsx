@@ -85,7 +85,7 @@ export function TransactionsScreen({ navigation }: Props) {
     }
   }
 
-  const handleExport = async () => {
+  const handleExportCsv = async () => {
     try {
       const url = `${getApiUrl()}/transactions/export/csv${filter !== 'all' ? `?type=${filter}` : ''}${query ? (filter !== 'all' ? `&query=${query}` : `?query=${query}`) : ''}`
       const fileUri = `${FileSystem.documentDirectory}transactions.csv`
@@ -100,14 +100,32 @@ export function TransactionsScreen({ navigation }: Props) {
     }
   }
 
+  const handleExportPdf = async () => {
+    try {
+      const url = `${getApiUrl()}/transactions/export/pdf${filter !== 'all' ? `?type=${filter}` : ''}${query ? (filter !== 'all' ? `&query=${query}` : `?query=${query}`) : ''}`
+      const fileUri = `${FileSystem.documentDirectory}transactions.pdf`
+
+      const { uri, status } = await downloadWithAuth(url, fileUri)
+      
+      if (status !== 200) throw new Error('Gagal mengunduh file PDF')
+      
+      await Sharing.shareAsync(uri, { UTI: 'com.adobe.pdf', mimeType: 'application/pdf' })
+    } catch (err) {
+      Alert.alert('Gagal mengekspor', err instanceof Error ? err.message : String(err))
+    }
+  }
+
   return (
     <Screen
       title="Transaksi"
       subtitle={`${totalCount} transaksi`}
       action={
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Button size="sm" variant="ghost" onPress={() => void handleExport()}>
+          <Button size="sm" variant="ghost" onPress={() => void handleExportCsv()}>
             📥
+          </Button>
+          <Button size="sm" variant="ghost" onPress={() => void handleExportPdf()}>
+            📄
           </Button>
           <Button size="sm" onPress={() => navigation.navigate('TransactionForm', {})}>
             + Tambah

@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingBlock } from '@/components/ui/LoadingBlock'
 import { useAsync } from '@/hooks/useAsync'
 import { getErrorMessage } from '@/lib/errorMessage'
+import type { RecurringFrequency } from '@/types'
 import type { RootStackParamList } from '@/navigation/types'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionForm'>
@@ -25,7 +26,7 @@ export function TransactionFormScreen({ navigation, route }: Props) {
 
   const handleSubmit = async (
     input: Parameters<typeof createTransaction>[0],
-    recurring?: { frequency: string; endDate?: string }
+    recurring?: { frequency: RecurringFrequency; endDate?: string }
   ) => {
     if (editing) {
       await updateTransaction(editing.id, input)

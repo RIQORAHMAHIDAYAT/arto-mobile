@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View, Switch } from 'react-native'
-import type { Account, Category, Transaction, TransactionInput, TransactionType } from '@/types'
+import type { Account, Category, RecurringFrequency, Transaction, TransactionInput, TransactionType } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { DateField } from '@/components/ui/DateField'
 import { Input } from '@/components/ui/Input'
@@ -18,7 +18,7 @@ interface TransactionFormProps {
   loading?: boolean
   error?: string | null
   onCancel?: () => void
-  onSubmit: (input: TransactionInput, recurring?: { frequency: string; endDate?: string }) => Promise<void>
+  onSubmit: (input: TransactionInput, recurring?: { frequency: RecurringFrequency; endDate?: string }) => Promise<void>
 }
 
 export function TransactionForm({
@@ -86,7 +86,7 @@ export function TransactionForm({
     try {
       await onSubmit(
         { type, amount: value, categoryId, accountId, transactionDate: date, note },
-        isRecurring ? { frequency, endDate: endDate || undefined } : undefined
+        isRecurring ? { frequency: frequency as RecurringFrequency, endDate: endDate || undefined } : undefined
       )
     } catch (err) {
       setSubmitError(getErrorMessage(err))

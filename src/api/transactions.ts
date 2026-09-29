@@ -1,4 +1,4 @@
-import type { Paginated, Transaction, TransactionFilters, TransactionInput } from '@/types'
+import type { Paginated, RecurringFrequency, RecurringTransaction, Transaction, TransactionFilters, TransactionInput } from '@/types'
 import { queryString, request } from './client'
 
 export async function listTransactions(
@@ -35,7 +35,7 @@ export async function deleteTransaction(id: string): Promise<void> {
   return request<void>(`/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
-export async function createRecurringTransaction(input: TransactionInput & { frequency: string; endDate?: string }): Promise<void> {
+export async function createRecurringTransaction(input: TransactionInput & { frequency: RecurringFrequency; endDate?: string }): Promise<void> {
   const { transactionDate, ...rest } = input;
   return request<void>('/recurring-transactions', {
     method: 'POST',
@@ -46,8 +46,8 @@ export async function createRecurringTransaction(input: TransactionInput & { fre
   })
 }
 
-export async function listRecurringTransactions(): Promise<any[]> {
-  return request<any[]>('/recurring-transactions')
+export async function listRecurringTransactions(): Promise<RecurringTransaction[]> {
+  return request<RecurringTransaction[]>('/recurring-transactions')
 }
 
 export async function deleteRecurringTransaction(id: string): Promise<void> {

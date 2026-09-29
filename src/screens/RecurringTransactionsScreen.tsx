@@ -10,10 +10,11 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { formatRupiah } from '@/lib/currency'
 import { getErrorMessage } from '@/lib/errorMessage'
 import { fontSizes, radii, spacing, useAppColors } from '@/theme'
+import type { RecurringTransaction } from '@/types'
 
 export function RecurringTransactionsScreen() {
   const colors = useAppColors()
-  const [data, setData] = useState<any[]>([])
+  const [data, setData] = useState<RecurringTransaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

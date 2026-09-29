@@ -2,6 +2,7 @@ export type TransactionType = 'income' | 'expense'
 export type AccountType = 'cash' | 'bank' | 'ewallet'
 export type ThemePreference = 'light' | 'dark' | 'system'
 export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN'
+export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export interface User {
   id: string
@@ -117,6 +118,25 @@ export interface BudgetWithMeta extends Budget {
   utilization: number
   categoryName: string
   categoryIcon: string
+}
+
+export interface RecurringTransaction {
+  id: string
+  userId: string
+  accountId: string
+  categoryId: string
+  type: TransactionType
+  amount: number
+  frequency: RecurringFrequency
+  startDate: string
+  endDate: string | null
+  nextRunDate: string
+  isActive: boolean
+  note: string | null
+  createdAt: string
+  updatedAt: string
+  account?: { id: string; name: string }
+  category?: { id: string; name: string; icon: string }
 }
 
 export interface BudgetInput {

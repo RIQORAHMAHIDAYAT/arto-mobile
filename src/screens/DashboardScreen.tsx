@@ -1,9 +1,11 @@
 import { useCallback } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Alert, StyleSheet, Text, View } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { getDashboardSummary } from '@/api/dashboard'
 import { listTransactions, createTransaction } from '@/api/transactions'
+import { listAccounts } from '@/api/accounts'
+import { listCategories } from '@/api/categories'
 import { Screen } from '@/components/Screen'
 import { TransactionRow } from '@/components/transactions/TransactionRow'
 import { MobileQuickAdd } from '@/components/transactions/MobileQuickAdd'
@@ -12,6 +14,7 @@ import { LoadingBlock } from '@/components/ui/LoadingBlock'
 import { useAsync } from '@/hooks/useAsync'
 import { useAuth } from '@/context/AuthContext'
 import { formatRupiah } from '@/lib/currency'
+import { toISODate } from '@/lib/date'
 import { getErrorMessage } from '@/lib/errorMessage'
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types'
 import { fontSizes, radii, spacing, useAppColors } from '@/theme'
@@ -27,11 +30,13 @@ export function DashboardScreen({ navigation: _navigation }: Props) {
   const { user } = useAuth()
   
   const { data, loading, error, refetch } = useAsync(async () => {
-    const [summary, txs] = await Promise.all([
+    const [summary, txs, accounts, categories] = await Promise.all([
       getDashboardSummary(),
-      listTransactions({}, 1, 50)
+      listTransactions({}, 1, 50),
+      listAccounts(),
+      listCategories(),
     ])
-    return { summary, transactions: txs.items }
+    return { summary, transactions: txs.items, accounts, categories }
   }, [])
 
   useFocusEffect(
@@ -43,23 +48,34 @@ export function DashboardScreen({ navigation: _navigation }: Props) {
   const firstName = user?.name?.split(' ')[0] ?? ''
 
   const handleAdd = async (type: 'income' | 'expense', amount: number, note: string) => {
-    if (!data?.summary) return
+    if (!data) return
+    const defaultAccount = data.accounts[0]
+    if (!defaultAccount) {
+      Alert.alert('Belum ada akun', 'Silakan buat akun keuangan terlebih dahulu di menu Akun.')
+      return
+    }
+
+    const defaultCategory = data.categories.find((c) => c.type === type)
+    if (!defaultCategory) {
+      Alert.alert(
+        'Kategori belum ada',
+        `Silakan buat kategori ${type === 'income' ? 'pemasukan' : 'pengeluaran'} di menu Pengaturan.`,
+      )
+      return
+    }
+
     try {
-      // Pick first default values just for quick-add
-      const categoryId = '' // API will handle default or we assume one
-      const accountId = '' 
-      
       await createTransaction({
         type,
         amount,
         note,
-        transactionDate: new Date().toISOString(),
-        categoryId, // In a real app we'd map this properly
-        accountId,
+        transactionDate: toISODate(new Date()),
+        categoryId: defaultCategory.id,
+        accountId: defaultAccount.id,
       })
       await refetch()
-    } catch {
-      alert('Gagal menambah transaksi')
+    } catch (err) {
+      Alert.alert('Gagal', getErrorMessage(err))
     }
   }
 

@@ -48,9 +48,9 @@ export async function logout(): Promise<void> {
   
   try {
     const { getExpoPushTokenAsync } = await import('expo-notifications');
-    const tokenData = await getExpoPushTokenAsync({ projectId: 'arto-project' });
+    const { EAS_PROJECT_ID, unregisterDeviceToken } = await import('./notifications');
+    const tokenData = await getExpoPushTokenAsync({ projectId: EAS_PROJECT_ID });
     if (tokenData && tokenData.data) {
-      const { unregisterDeviceToken } = await import('./notifications');
       await unregisterDeviceToken(tokenData.data);
     }
   } catch {

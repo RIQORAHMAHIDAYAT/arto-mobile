@@ -94,7 +94,7 @@ function AuthStack() {
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { Platform } from 'react-native'
-import { registerDeviceToken } from '@/api/notifications'
+import { registerDeviceToken, EAS_PROJECT_ID } from '@/api/notifications'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -106,6 +106,14 @@ Notifications.setNotificationHandler({
   }),
 });
 
+type PushPermission = { granted?: boolean; status?: string }
+
+function isPushPermissionGranted(permission: unknown): boolean {
+  if (typeof permission !== 'object' || permission === null) return false
+  const { granted, status } = permission as PushPermission
+  return granted === true || status === 'granted'
+}
+
 function AuthedStack() {
   const colors = useAppColors()
 
@@ -114,21 +122,20 @@ function AuthedStack() {
       if (!Device.isDevice) {
         return;
       }
-      const existingPermissions = (await Notifications.getPermissionsAsync()) as any;
-      let isGranted = existingPermissions.status === 'granted' || existingPermissions.granted;
+      const existingPermissions = await Notifications.getPermissionsAsync();
+      let isGranted = isPushPermissionGranted(existingPermissions);
       
       if (!isGranted) {
-        const requestedPermissions = (await Notifications.requestPermissionsAsync()) as any;
-        isGranted = requestedPermissions.status === 'granted' || requestedPermissions.granted;
+        const requestedPermissions = await Notifications.requestPermissionsAsync();
+        isGranted = isPushPermissionGranted(requestedPermissions);
       }
       
       if (!isGranted) {
         return;
       }
       try {
-        const projectId = 'arto-project'; // Replace with real expo project ID if applicable
         const tokenData = await Notifications.getExpoPushTokenAsync({
-          projectId,
+          projectId: EAS_PROJECT_ID,
         });
         const platform = Platform.OS;
         await registerDeviceToken(tokenData.data, platform);

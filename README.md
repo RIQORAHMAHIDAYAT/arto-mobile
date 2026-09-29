@@ -58,6 +58,13 @@ EXPO_PUBLIC_API_URL=http://192.168.1.5:3000/api
 EXPO_PUBLIC_API_URL=http://localhost:3000/api
 ```
 
+Variabel lain yang tersedia di `.env`:
+
+| Variabel | Keterangan |
+|----------|------------|
+| `EXPO_PUBLIC_EAS_PROJECT_ID` | Project ID Expo/EAS untuk push notification. Opsional, fallback `arto-project` (lihat `src/api/notifications.ts`). |
+| `EXPO_PUBLIC_DEMO_EMAIL` / `EXPO_PUBLIC_DEMO_PASSWORD` | Kredensial akun demo, hanya dipakai saat `__DEV__`. |
+
 > ⚠️ Pastikan perangkat dan mesin berada di jaringan yang sama. Untuk perangkat fisik,
 > gunakan IP LAN mesin (cek dengan `ipconfig` di Windows / `ifconfig` di macOS-Linux).
 

@@ -87,4 +87,18 @@ export function useAppColors(): AppColors {
   return useMemo(() => (resolvedTheme === 'dark' ? darkColors : lightColors), [resolvedTheme])
 }
 
+/**
+ * Ubah warna hex (#rrggbb) menjadi rgba() dengan alpha tertentu.
+ * Wajib pakai satu helper ini, bukan mendefinisikan ulang per komponen.
+ */
+export function withAlpha(hexColor: string, alpha: number): string {
+  if (hexColor.startsWith('#') && hexColor.length === 7) {
+    const r = Number.parseInt(hexColor.slice(1, 3), 16)
+    const g = Number.parseInt(hexColor.slice(3, 5), 16)
+    const b = Number.parseInt(hexColor.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  return hexColor
+}
+
 export const donutColors = ['#16A34A', '#2563EB', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#84CC16'] as const

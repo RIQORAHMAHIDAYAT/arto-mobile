@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { toISODate } from '@/lib/date'
 import { parseAmountText, sanitizeAmountInput } from '@/lib/currency'
 import { getErrorMessage } from '@/lib/errorMessage'
-import { fontSizes, radii, spacing, useAppColors } from '@/theme'
+import { fontSizes, radii, spacing, useAppColors, withAlpha } from '@/theme'
 
 interface TransactionFormProps {
   categories: Category[]
@@ -204,16 +204,6 @@ export function TransactionForm({
       </View>
     </KeyboardAvoidingView>
   )
-}
-
-function withAlpha(hexColor: string, alpha: number): string {
-  if (hexColor.startsWith('#') && hexColor.length === 7) {
-    const r = Number.parseInt(hexColor.slice(1, 3), 16)
-    const g = Number.parseInt(hexColor.slice(3, 5), 16)
-    const b = Number.parseInt(hexColor.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-  return hexColor
 }
 
 const styles = StyleSheet.create({

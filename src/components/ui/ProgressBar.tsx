@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import { fontSizes, radii, useAppColors } from '@/theme'
+import { fontSizes, radii, useAppColors, withAlpha } from '@/theme'
 
 export type ProgressTone = 'success' | 'danger' | 'warning' | 'info' | 'secondary'
 
@@ -38,15 +38,6 @@ export function ProgressBar({ value, tone = 'secondary', showLabel = false, trac
   )
 }
 
-function withAlpha(hexColor: string, alpha: number): string {
-  if (hexColor.startsWith('#') && hexColor.length === 7) {
-    const r = Number.parseInt(hexColor.slice(1, 3), 16)
-    const g = Number.parseInt(hexColor.slice(3, 5), 16)
-    const b = Number.parseInt(hexColor.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-  return hexColor
-}
 
 const styles = StyleSheet.create({
   row: {

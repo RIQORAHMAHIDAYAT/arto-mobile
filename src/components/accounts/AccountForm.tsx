@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { getErrorMessage } from '@/lib/errorMessage'
-import { radii, spacing, useAppColors } from '@/theme'
+import { radii, spacing, useAppColors, withAlpha } from '@/theme'
 
 interface AccountFormProps {
   initial?: Account | null
@@ -77,16 +77,6 @@ export function AccountForm({ initial, loading, error, onCancel, onSubmit }: Acc
       </View>
     </View>
   )
-}
-
-function withAlpha(hexColor: string, alpha: number): string {
-  if (hexColor.startsWith('#') && hexColor.length === 7) {
-    const r = Number.parseInt(hexColor.slice(1, 3), 16)
-    const g = Number.parseInt(hexColor.slice(3, 5), 16)
-    const b = Number.parseInt(hexColor.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-  return hexColor
 }
 
 const styles = StyleSheet.create({

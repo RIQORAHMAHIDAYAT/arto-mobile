@@ -1,8 +1,9 @@
+import { memo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import type { Category, Transaction } from '@/types'
 import { formatDateDayMonth } from '@/lib/date'
 import { formatRupiah, formatRupiahSigned } from '@/lib/currency'
-import { fontSizes, radii, spacing, useAppColors } from '@/theme'
+import { fontSizes, radii, spacing, useAppColors, withAlpha } from '@/theme'
 
 export interface TransactionRowProps {
   transaction: Transaction
@@ -10,7 +11,15 @@ export interface TransactionRowProps {
   accountName?: string
 }
 
-export function TransactionRow({ transaction, category, accountName }: TransactionRowProps) {
+/**
+ * Memoized agar FlatList tidak re-render seluruh baris setiap scroll
+ * (penting untuk perangkat entry-level).
+ */
+export const TransactionRow = memo(function TransactionRow({
+  transaction,
+  category,
+  accountName,
+}: TransactionRowProps) {
   const colors = useAppColors()
   const isExpense = transaction.type === 'expense'
   const signed = isExpense ? -transaction.amount : transaction.amount
@@ -54,17 +63,7 @@ export function TransactionRow({ transaction, category, accountName }: Transacti
       </Text>
     </View>
   )
-}
-
-function withAlpha(hexColor: string, alpha: number): string {
-  if (hexColor.startsWith('#') && hexColor.length === 7) {
-    const r = Number.parseInt(hexColor.slice(1, 3), 16)
-    const g = Number.parseInt(hexColor.slice(3, 5), 16)
-    const b = Number.parseInt(hexColor.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-  return hexColor
-}
+})
 
 const styles = StyleSheet.create({
   row: {

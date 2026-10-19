@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ApiError,
   clearTokens,
+  downloadWithAuth,
   getApiUrl,
   getAccessToken,
   getRefreshToken,
@@ -10,19 +11,59 @@ import {
   setTokens,
 } from './client'
 
-const { secureMock, legacyMock } = vi.hoisted(() => ({
-  secureMock: {
-    getItemAsync: vi.fn(),
-    setItemAsync: vi.fn(),
-    deleteItemAsync: vi.fn(),
-  },
-  legacyMock: {
-    downloadAsync: vi.fn(),
-  },
-}))
+interface FileMockInstance {
+  uri: string
+  exists: boolean
+  created: boolean
+  deleted: boolean
+  written: unknown
+}
+
+const { secureMock, expoFetchMock, fsMock, fileInstances } = vi.hoisted(() => {
+  const fileInstances: FileMockInstance[] = []
+  class FileMock {
+    uri = 'file:///document/file'
+    exists = false
+    created = false
+    deleted = false
+    written: unknown = null
+
+    constructor(..._parts: unknown[]) {
+      fileInstances.push(this)
+    }
+
+    delete(): void {
+      this.deleted = true
+      this.exists = false
+    }
+
+    create(): void {
+      this.created = true
+      this.exists = true
+    }
+
+    write(content: unknown): void {
+      this.written = content
+    }
+  }
+  return {
+    secureMock: {
+      getItemAsync: vi.fn(),
+      setItemAsync: vi.fn(),
+      deleteItemAsync: vi.fn(),
+    },
+    expoFetchMock: { fetch: vi.fn() },
+    fsMock: {
+      File: FileMock,
+      Paths: { document: { uri: 'file:///document' } },
+    },
+    fileInstances,
+  }
+})
 
 vi.mock('expo-secure-store', () => secureMock)
-vi.mock('expo-file-system/legacy', () => legacyMock)
+vi.mock('expo/fetch', () => expoFetchMock)
+vi.mock('expo-file-system', () => fsMock)
 
 function response(ok: boolean, status: number, body: unknown) {
   return {
@@ -38,6 +79,8 @@ beforeEach(() => {
   vi.restoreAllMocks()
   globalThis.fetch = fetchMock as unknown as typeof fetch
   fetchMock.mockReset()
+  expoFetchMock.fetch.mockReset()
+  fileInstances.length = 0
   secureMock.getItemAsync.mockResolvedValue(null)
   secureMock.setItemAsync.mockResolvedValue(undefined)
   secureMock.deleteItemAsync.mockResolvedValue(undefined)
@@ -114,5 +157,38 @@ describe('client', () => {
     secureMock.getItemAsync.mockImplementation(async (key: string) => (key === 'arto.accessToken' ? 'tok' : 'rf'))
     expect(await getAccessToken()).toBe('tok')
     expect(await getRefreshToken()).toBe('rf')
+  })
+
+  it('downloadWithAuth refresh-on-401 lalu menulis file dan mengembalikan uri', async () => {
+    secureMock.getItemAsync.mockImplementation(async (key: string) =>
+      key === 'arto.accessToken' ? 'expired' : 'rt-1',
+    )
+    expoFetchMock.fetch
+      .mockResolvedValueOnce({ status: 401, ok: false })
+      .mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        bytes: async () => new Uint8Array([1, 2, 3]),
+      })
+    fetchMock.mockResolvedValueOnce(response(true, 200, { accessToken: 'at-new', refreshToken: 'rt-new' }))
+
+    const result = await downloadWithAuth(`${getApiUrl()}/transactions/export/csv`, 'transactions.csv')
+
+    expect(result.status).toBe(200)
+    expect(expoFetchMock.fetch).toHaveBeenCalledTimes(2)
+    const file = fileInstances.at(-1)
+    expect(file?.created).toBe(true)
+    expect(file?.written).toEqual(new Uint8Array([1, 2, 3]))
+    expect(result.uri).toBe(file?.uri)
+  })
+
+  it('downloadWithAuth melempar ApiError saat respons gagal', async () => {
+    secureMock.getItemAsync.mockResolvedValue('at-123')
+    expoFetchMock.fetch.mockResolvedValueOnce({ status: 500, ok: false })
+
+    await expect(
+      downloadWithAuth(`${getApiUrl()}/transactions/export/pdf`, 'transactions.pdf'),
+    ).rejects.toMatchObject({ name: 'ApiError', status: 500 })
+    expect(fileInstances).toHaveLength(0)
   })
 })

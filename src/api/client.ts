@@ -1,4 +1,6 @@
 import * as SecureStore from 'expo-secure-store'
+import { File, Paths } from 'expo-file-system'
+import { fetch as expoFetch } from 'expo/fetch'
 
 /**
  * HTTP client ARTO — mirror dari arto-web/src/data/api/client.ts.
@@ -165,21 +167,41 @@ export function queryString(params: object): string {
   return raw ? `?${raw}` : ''
 }
 
-import * as FileSystem from 'expo-file-system/legacy'
-export async function downloadWithAuth(url: string, fileUri: string): Promise<FileSystem.FileSystemDownloadResult> {
-  let token = await getAccessToken()
-  let result = await FileSystem.downloadAsync(url, fileUri, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  
-  if (result.status === 401) {
+export interface DownloadResult {
+  uri: string
+  status: number
+}
+
+async function fetchExport(url: string) {
+  const token = await getAccessToken()
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+  return expoFetch(url, { headers })
+}
+
+/**
+ * Mengunduh file dengan token Authorization dan refresh-on-401 otomatis.
+ * Memakai `expo/fetch` (agar status HTTP terbaca andal) dan menulis ke file
+ * lewat API `expo-file-system` modern (`File`/`Paths`). Mengembalikan URI file
+ * lokal beserta status HTTP.
+ */
+export async function downloadWithAuth(url: string, filename: string): Promise<DownloadResult> {
+  let response = await fetchExport(url)
+
+  if (response.status === 401) {
     const refreshed = await refreshSession()
-    if (refreshed) {
-      token = await getAccessToken()
-      result = await FileSystem.downloadAsync(url, fileUri, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-    }
+    if (refreshed) response = await fetchExport(url)
   }
-  return result
+
+  if (!response.ok) {
+    const message =
+      response.status === 401 ? 'Sesi berakhir. Silakan masuk kembali.' : 'Gagal mengunduh file.'
+    throw new ApiError(message, response.status)
+  }
+
+  const bytes = await response.bytes()
+  const file = new File(Paths.document, filename)
+  if (file.exists) file.delete()
+  file.create()
+  file.write(bytes)
+  return { uri: file.uri, status: response.status }
 }

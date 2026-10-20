@@ -1,0 +1,55 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - chore
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Semua patch digabung jadi satu PR supaya review lebih mudah.
+      patch-updates:
+        applies-to: version-updates
+        update-types:
+          - patch
+      minor-updates:
+        applies-to: version-updates
+        update-types:
+          - minor
+
+  # Hanya devDependencies; tidak boleh menyentuh dependency runtime.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: "07:00"
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - dev
+    commit-message:
+      prefix: "chore(deps-dev)"
+    dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: "chore(ci)"

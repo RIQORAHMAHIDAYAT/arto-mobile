@@ -1,0 +1,11 @@
+# CODEOWNERS — arto-mobile
+#
+# Effective once "Require review from Code Owners" is enabled in
+# Repository settings -> Branches -> Branch protection rules.
+# Replace the handle below with the actual maintainer account.
+
+# Default owner for everything in this repo
+* @RIQORAHMAHIDAYAT
+
+# CI pipeline: changes here can silently disable checks.
+/.github/ @RIQORAHMAHIDAYAT
